@@ -71,11 +71,13 @@ class data_field_datestamp extends data_field_base {
     }
 
     function display_browse_field($recordid, $template) {
+        global $PAGE;
         if ($template == 'listtemplate') {
             $content = datafield_datestamp_getcontent($recordid, $this->field->id);
             return datafield_datestamp_getbadge($content);
         }
         if ($template == 'singletemplate') {
+            $PAGE->requires->js(new moodle_url('/mod/data/field/datestamp/singletemplate.js'));
             return datafield_datestamp_getsingletemplate($recordid, $this->field);
         }
 

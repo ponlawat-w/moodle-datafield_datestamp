@@ -8,6 +8,15 @@
         <td class="c1"><input class="fielddescription" type="text" name="description" id="description" value="<?php p($this->field->description); ?>" /></td>
     </tr>
     <tr>
+        <td class="c0">
+            <label for="buttontext"><?php echo get_string('buttontext', 'datafield_datestamp'); ?></label>
+        </td>
+        <td class="c1">
+            <input class="buttontext" type="text" name="<?php echo DATAFIELD_DATESTAMP_COLUMN_FIELD_STAMPTODAYTEXT; ?>" id="buttontext"
+                   value="<?php p($this->field->{DATAFIELD_DATESTAMP_COLUMN_FIELD_STAMPTODAYTEXT} ? $this->field->{DATAFIELD_DATESTAMP_COLUMN_FIELD_STAMPTODAYTEXT} : get_string('stamptoday', 'datafield_datestamp')); ?>">
+        </td>
+    </tr>
+    <tr>
         <td class="c0" style="vertical-align: top;"><?php echo get_string('submitableroles', 'datafield_datestamp'); ?></td>
         <td class="c1"><?php echo datafield_datestamp_getrolecheckboxes($roles, $selectedroles); ?></td>
     </tr>

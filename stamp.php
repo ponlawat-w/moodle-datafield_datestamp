@@ -33,10 +33,14 @@ if ($content) {
     $DB->delete_records('data_content', ['id' => $content->id]);
 }
 
+$comment = optional_param('comment', '', PARAM_TEXT);
+
 $content = new stdClass();
 $content->fieldid = $fieldid;
 $content->recordid = $recordid;
 $content->content = time();
+$content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID} = $USER->id;
+$content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT} = $comment;
 if (!$DB->insert_record('data_content', $content)) {
     throw new moodle_exception('Cannot insert record');
 }
