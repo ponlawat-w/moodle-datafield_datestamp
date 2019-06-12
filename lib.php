@@ -64,7 +64,7 @@ function datafield_datestamp_getcontent($recordid, $fieldid) {
     return $content ? $content : null;
 }
 
-function datafield_datestamp_getbadge($content) {
+function datafield_datestamp_getbadge($content, $withuser = true) {
     global $DB;
     $submitted = $content && $content->content ? true : false;
     $datestr = $submitted ?
@@ -75,11 +75,14 @@ function datafield_datestamp_getbadge($content) {
     if ($submitted && $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID}) {
         $user = $DB->get_record('user', ['id' => $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID}]);
         if ($user) {
+            $badgestr = $withuser ? get_string('stampedwithuser', 'datafield_datestamp', [
+                'name' => fullname($user),
+                'date' => $datestr
+            ]) : get_string('stampedwithoutuser', 'datafield_datestamp', [
+                'date' => $datestr
+            ]);
             return html_writer::span(
-                get_string('stampedwithuser', 'datafield_datestamp', [
-                    'name' => fullname($user),
-                    'date' => $datestr
-                ]),
+                $badgestr,
                 $class,
                 $attr
             );

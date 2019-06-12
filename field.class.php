@@ -74,7 +74,7 @@ class data_field_datestamp extends data_field_base {
         global $PAGE;
         if ($template == 'listtemplate') {
             $content = datafield_datestamp_getcontent($recordid, $this->field->id);
-            return datafield_datestamp_getbadge($content);
+            return datafield_datestamp_getbadge($content, false);
         }
         if ($template == 'singletemplate') {
             $PAGE->requires->js(new moodle_url('/mod/data/field/datestamp/singletemplate.js'));
