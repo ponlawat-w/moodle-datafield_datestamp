@@ -30,21 +30,13 @@ class data_field_datestamp extends data_field_base {
         global $CFG, $DB, $OUTPUT, $COURSE;
 
         $coursecontext = context_course::instance($COURSE->id);
-        $roleobjs = get_roles_used_in_context($coursecontext);
-        $roleobjs = role_fix_names($roleobjs, $coursecontext, ROLENAME_ALIAS);
-        $roles = [];
-        foreach ($roleobjs as $roleobj) {
-            $name = $roleobj->localname;
-            if (!$name) {
-                $name = $roleobj->name;
-            }
-            if (!$name) {
-                $name = $roleobj->shortname;
-            }
-            $roles[$roleobj->id] = $name;
+        $enrolledusers = get_enrolled_users($coursecontext, '', 0, 'u.*', 'firstname, lastname');
+        $users = [];
+        foreach ($enrolledusers as $user) {
+            $users[$user->id] = fullname($user);
         }
 
-        $selectedroles = datafield_datestamp_getroles($this->field);
+        $selectedusers = datafield_datestamp_getusers($this->field);
 
         if (empty($this->field)) {   // No field has been defined yet, try and make one
             $this->define_default_field();

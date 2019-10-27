@@ -16,7 +16,7 @@ if (!$field) {
     throw new moodle_exception('Field not found');
 }
 
-if (!datafield_datestamp_submitable($field, context_course::instance($courseid))) {
+if (!datafield_datestamp_submitable($field)) {
     throw new moodle_exception('No permission');
 }
 

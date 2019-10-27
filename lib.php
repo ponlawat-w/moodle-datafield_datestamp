@@ -3,20 +3,21 @@
 defined('MOODLE_INTERNAL') || die();
 
 const DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEROLES = 'param1';
+const DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEUSERS = 'param1';
 const DATAFIELD_DATESTAMP_COLUMN_FIELD_STAMPTODAYTEXT = 'param2';
 const DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID = 'content1';
 const DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT = 'content2';
 
-function datafield_datestamp_getrolecheckboxes($roles, $selectedroles = []) {
+function datafield_datestamp_getusercheckboxes($users, $selectedusers = []) {
     $str = '';
-    foreach ($roles as $id => $role) {
+    foreach ($users as $id => $role) {
         $attr = [
             'type' => 'checkbox',
             'value' => $id,
-            'name' => DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEROLES . '[]'
+            'name' => DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEUSERS . '[]'
         ];
 
-        if (in_array($id, $selectedroles)) {
+        if (in_array($id, $selectedusers)) {
             $attr['checked'] = 'checked';
         }
 
@@ -30,28 +31,15 @@ function datafield_datestamp_getrolecheckboxes($roles, $selectedroles = []) {
     return $str;
 }
 
-function datafield_datestamp_getroles($field) {
-    return explode(',', $field->{DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEROLES});
+function datafield_datestamp_getusers($field) {
+    return explode(',', $field->{DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEUSERS});
 }
 
-function datafield_datestamp_submitable($field, $coursecontext, $userid = 0) {
+function datafield_datestamp_submitable($field, $userid = 0) {
     global $USER;
-    $submittableroles = datafield_datestamp_getroles($field);
+    $submittableusers = datafield_datestamp_getusers($field);
     $userid = $userid ? $userid : $USER->id;
-    if (isset($USER->access['rsw'])
-        && isset($USER->access['rsw'][$coursecontext->path])
-        && in_array($USER->access['rsw'][$coursecontext->path], $submittableroles)) {
-        return true;
-    }
-
-    $myroles = get_user_roles_with_special($coursecontext, $userid);
-    foreach ($myroles as $myrole) {
-        if ($myrole->userid == $userid && in_array($myrole->roleid, $submittableroles)) {
-            return true;
-        }
-    }
-
-    return false;
+    return in_array($userid, $submittableusers);
 }
 
 function datafield_datestamp_getcontent($recordid, $fieldid) {
@@ -111,7 +99,7 @@ function datafield_datestamp_getsingletemplate($recordid, $field) {
     $badge = datafield_datestamp_getbadge($content);
 
     $afterbadgehtml = '';
-    if (datafield_datestamp_submitable($field, context_course::instance($COURSE->id)) && !datafield_datestamp_contentsubmitted($content)) {
+    if (datafield_datestamp_submitable($field) && !datafield_datestamp_contentsubmitted($content)) {
         $stampactionform = html_writer::start_tag('form', [
             'action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
             'method' => 'post',
