@@ -7,6 +7,7 @@ const DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEUSERS = 'param1';
 const DATAFIELD_DATESTAMP_COLUMN_FIELD_STAMPTODAYTEXT = 'param2';
 const DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID = 'content1';
 const DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT = 'content2';
+const DATAFIELD_DATESTAMP_COLUMN_CONTENT_MODIFIED = 'content3';
 
 function datafield_datestamp_getusercheckboxes($users, $selectedusers = []) {
     $str = '';
@@ -55,6 +56,8 @@ function datafield_datestamp_getcontent($recordid, $fieldid) {
 function datafield_datestamp_getbadge($content, $withuser = true) {
     global $DB;
     $submitted = $content && $content->content ? true : false;
+    $modified = $content && $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_MODIFIED} ? true : false;
+    $modifiedstr = $modified ? ' (' . get_string('modified') . ')' : '';
     $datestr = $submitted ?
         userdate($content->content, get_string('strftimedate', 'langconfig'))
         : get_string('nostamp', 'datafield_datestamp');
@@ -70,13 +73,13 @@ function datafield_datestamp_getbadge($content, $withuser = true) {
                 'date' => $datestr
             ]);
             return html_writer::span(
-                $badgestr,
+                $badgestr . $modifiedstr,
                 $class,
                 $attr
             );
         }
     }
-    return html_writer::span($datestr, $class, $attr);
+    return html_writer::span($datestr . $modifiedstr, $class, $attr);
 }
 
 function datafield_datestamp_getstamptext($field) {
@@ -93,36 +96,45 @@ function datafield_datestamp_contentsubmitted($contentrecord) {
     return false;
 }
 
-function datafield_datestamp_getsingletemplate($recordid, $field) {
+function datafield_datestamp_getactionform($recordid, $field, $default = '', $edit = false) {
     global $COURSE, $OUTPUT;
+
+    $stampactionform = html_writer::start_tag('form', [
+        'action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
+        'method' => 'post',
+        'enctype' => 'application/x-www-form-urlencoded'
+    ]);
+
+    $stampactionform .= html_writer::start_tag('input', ['type' => 'hidden', 'name' => 'c', 'value' => $COURSE->id]);
+    $stampactionform .= html_writer::start_tag('input', ['type' => 'hidden', 'name' => 'r', 'value' => $recordid]);
+    $stampactionform .= html_writer::start_tag('input', ['type' => 'hidden', 'name' => 'f', 'value' => $field->id]);
+    $stampactionform .= html_writer::start_tag('input', [
+        'type' => 'text',
+        'name' => 'comment',
+        'placeholder' => get_string('commentplaceholder', 'datafield_datestamp'),
+        'value' => $default
+    ]);
+    $stamptext = $edit ? get_string('edit') : datafield_datestamp_getstamptext($field);
+    $stampactionform .= html_writer::tag('button',
+        $OUTPUT->pix_icon('stamp', '', 'datafield_datestamp') . ' ' .
+        $stamptext, [
+            'type' => 'submit',
+            'class' => 'btn btn-warning'
+        ]);
+
+    $stampactionform .= html_writer::end_tag('form');
+
+    return $stampactionform;
+}
+
+function datafield_datestamp_getsingletemplate($recordid, $field) {
     $content = datafield_datestamp_getcontent($recordid, $field->id);
     $badge = datafield_datestamp_getbadge($content);
 
     $afterbadgehtml = '';
     if (datafield_datestamp_submitable($field) && !datafield_datestamp_contentsubmitted($content)) {
-        $stampactionform = html_writer::start_tag('form', [
-            'action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
-            'method' => 'post',
-            'enctype' => 'application/x-www-form-urlencoded'
-        ]);
-
-        $stampactionform .= html_writer::start_tag('input', ['type' => 'hidden', 'name' => 'c', 'value' => $COURSE->id]);
-        $stampactionform .= html_writer::start_tag('input', ['type' => 'hidden', 'name' => 'r', 'value' => $recordid]);
-        $stampactionform .= html_writer::start_tag('input', ['type' => 'hidden', 'name' => 'f', 'value' => $field->id]);
-        $stampactionform .= html_writer::start_tag('input', [
-            'type' => 'text',
-            'name' => 'comment',
-            'placeholder' => get_string('commentplaceholder', 'datafield_datestamp')
-        ]);
-        $stampactionform .= html_writer::tag('button',
-            $OUTPUT->pix_icon('stamp', '', 'datafield_datestamp') . ' ' .
-            datafield_datestamp_getstamptext($field), [
-                'type' => 'submit',
-                'class' => 'btn btn-warning'
-            ]);
-
-        $stampactionform .= html_writer::end_tag('form');
-
+        $stampactionform = datafield_datestamp_getactionform($recordid, $field);
+        
         $afterbadgehtml = html_writer::div($stampactionform, '', [
             'style' => 'margin: 8px 0;',
             'class' => 'datafield_datestamp-stampaction',
@@ -137,6 +149,18 @@ function datafield_datestamp_getsingletemplate($recordid, $field) {
             ]) . ': ' .
             $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}
         , '', ['style' => 'font-style: italic;']);
+    }
+    
+    if (datafield_datestamp_submitable($field) && datafield_datestamp_contentsubmitted($content)) {
+        $stampactionform = datafield_datestamp_getactionform($recordid, $field, $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}, true);
+
+        $afterbadgehtml .= html_writer::div($stampactionform, '', [
+            'style' => 'margin: 8px 0;',
+            'class' => 'datafield_datestamp-stampaction',
+            'data-action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
+            'data-method' => 'post',
+            'data-enctype' => 'application/x-www-form-urlencoded'
+        ]);
     }
 
     return $badge . $afterbadgehtml;

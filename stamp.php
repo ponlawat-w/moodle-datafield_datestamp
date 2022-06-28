@@ -7,7 +7,6 @@ $courseid = required_param('c', PARAM_INT);
 
 require_course_login($courseid);
 
-
 $recordid = required_param('r', PARAM_INT);
 $fieldid = required_param('f', PARAM_INT);
 
@@ -25,15 +24,20 @@ if (!$record) {
     throw new moodle_exception('Record not found');
 }
 
+$comment = optional_param('comment', '', PARAM_TEXT);
+
 $content = $DB->get_record('data_content', ['fieldid' => $fieldid, 'recordid' => $recordid]);
 if ($content && $content->content) {
-    throw new moodle_exception('Already stamped');
+    $content->content = time();
+    $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT} = $comment;
+    $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_MODIFIED} = 'true';
+    $DB->update_record('data_content', $content);
+    redirect(new moodle_url('/mod/data/view.php', ['rid' => $recordid]));
+    exit;
 }
 if ($content) {
     $DB->delete_records('data_content', ['id' => $content->id]);
 }
-
-$comment = optional_param('comment', '', PARAM_TEXT);
 
 $content = new stdClass();
 $content->fieldid = $fieldid;
