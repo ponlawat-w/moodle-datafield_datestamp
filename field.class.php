@@ -96,8 +96,15 @@ class data_field_datestamp extends data_field_base {
         return optional_param($param, $defaults[$param], PARAM_NOTAGS);
     }
 
+    /**
+     * @param object $record
+     * @return string
+     */
     function export_text_value($record) {
-        return $record;
+        if (is_string($record)) {
+            return $record;
+        }
+        return $record->content ? userdate($record->content, '%Y-%m-%d') : '';
     }
 
 }
