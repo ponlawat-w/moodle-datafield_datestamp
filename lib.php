@@ -99,6 +99,10 @@ function datafield_datestamp_contentsubmitted($contentrecord) {
 function datafield_datestamp_getactionform($recordid, $field, $default = '', $edit = false) {
     global $COURSE, $OUTPUT;
 
+    if (optional_param('exporting', 0, PARAM_INT) == 1) {
+        return '';
+    }
+
     $stampactionform = html_writer::start_tag('form', [
         'action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
         'method' => 'post',
