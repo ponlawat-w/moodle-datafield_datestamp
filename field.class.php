@@ -23,7 +23,7 @@ class data_field_datestamp extends data_field_base {
     }
 
     function display_add_field($recordid = 0, $formdata = null) {
-        return '';
+        return '#Date Stamp Placeholder#';
     }
 
     function display_edit_field() {
@@ -35,8 +35,6 @@ class data_field_datestamp extends data_field_base {
         foreach ($enrolledusers as $user) {
             $users[$user->id] = fullname($user);
         }
-
-        $selectedusers = datafield_datestamp_getusers($this->field);
 
         if (empty($this->field)) {   // No field has been defined yet, try and make one
             $this->define_default_field();
