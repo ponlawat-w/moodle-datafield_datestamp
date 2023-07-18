@@ -61,8 +61,11 @@ function datafield_datestamp_getbadge($content, $withuser = true) {
     $datestr = $submitted ?
         userdate($content->content, get_string('strftimedate', 'langconfig'))
         : get_string('nostamp', 'datafield_datestamp');
-    $class = $submitted ? 'badge badge-danger' : 'badge badge-secondary';
-    $attr = $submitted ? ['style' => 'background-color: #da4f49;'] : [];
+        $class = '';
+    if (!defined('MOODLE_DATAFIELD_TIMETABLE_EXPORTPRINTABLE')) {
+        $class = $submitted ? 'badge badge-danger' : 'badge badge-secondary';
+    }
+    $attr = $submitted && !defined('MOODLE_DATAFIELD_TIMETABLE_EXPORTPRINTABLE') ? ['style' => 'background-color: #da4f49;'] : [];
     if ($submitted && $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID}) {
         $user = $DB->get_record('user', ['id' => $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID}]);
         if ($user) {
