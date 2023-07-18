@@ -18,7 +18,7 @@ function datafield_datestamp_getusercheckboxes($users, $selectedusers = []) {
             'name' => DATAFIELD_DATESTAMP_COLUMN_FIELD_SUBMITABLEUSERS . '[]'
         ];
 
-        if (is_array($selectedusers) && in_array($id, $selectedusers)) {
+        if (isset($selectedusers) && in_array($id, $selectedusers)) {
             $attr['checked'] = 'checked';
         }
 
