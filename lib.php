@@ -62,10 +62,10 @@ function datafield_datestamp_getbadge($content, $withuser = true) {
         userdate($content->content, get_string('strftimedate', 'langconfig'))
         : get_string('nostamp', 'datafield_datestamp');
         $class = '';
-    if (!defined('MOODLE_DATAFIELD_TIMETABLE_EXPORTPRINTABLE')) {
+    if (!defined('MOODLE_LOCAL_DBREPORTDOWNLOAD_DOC')) {
         $class = $submitted ? 'badge badge-danger' : 'badge badge-secondary';
     }
-    $attr = $submitted && !defined('MOODLE_DATAFIELD_TIMETABLE_EXPORTPRINTABLE') ? ['style' => 'background-color: #da4f49;'] : [];
+    $attr = $submitted && !defined('MOODLE_LOCAL_DBREPORTDOWNLOAD_DOC') ? ['style' => 'background-color: #da4f49;'] : [];
     if ($submitted && $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID}) {
         $user = $DB->get_record('user', ['id' => $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_USERID}]);
         if ($user) {
@@ -139,35 +139,37 @@ function datafield_datestamp_getsingletemplate($recordid, $field) {
     $badge = datafield_datestamp_getbadge($content);
 
     $afterbadgehtml = '';
-    if (datafield_datestamp_submitable($field) && !datafield_datestamp_contentsubmitted($content)) {
-        $stampactionform = datafield_datestamp_getactionform($recordid, $field);
+    if (!defined('MOODLE_LOCAL_DBREPORTDOWNLOAD_DOC')) {
+        if (datafield_datestamp_submitable($field) && !datafield_datestamp_contentsubmitted($content)) {
+            $stampactionform = datafield_datestamp_getactionform($recordid, $field);
+            
+            $afterbadgehtml = html_writer::div($stampactionform, '', [
+                'style' => 'margin: 8px 0;',
+                'class' => 'datafield_datestamp-stampaction',
+                'data-action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
+                'data-method' => 'post',
+                'data-enctype' => 'application/x-www-form-urlencoded'
+            ]);
+        } else if ($content && $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}) {
+            $afterbadgehtml = html_writer::div(
+                html_writer::span(get_string('comment', 'datafield_datestamp'), '' , [
+                    'style' => 'font-weight: bold;'
+                ]) . ': ' .
+                $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}
+            , '', ['style' => 'font-style: italic;']);
+        }
         
-        $afterbadgehtml = html_writer::div($stampactionform, '', [
-            'style' => 'margin: 8px 0;',
-            'class' => 'datafield_datestamp-stampaction',
-            'data-action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
-            'data-method' => 'post',
-            'data-enctype' => 'application/x-www-form-urlencoded'
-        ]);
-    } else if ($content && $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}) {
-        $afterbadgehtml = html_writer::div(
-            html_writer::span(get_string('comment', 'datafield_datestamp'), '' , [
-                'style' => 'font-weight: bold;'
-            ]) . ': ' .
-            $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}
-        , '', ['style' => 'font-style: italic;']);
-    }
+        if (datafield_datestamp_submitable($field) && datafield_datestamp_contentsubmitted($content)) {
+            $stampactionform = datafield_datestamp_getactionform($recordid, $field, $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}, true);
     
-    if (datafield_datestamp_submitable($field) && datafield_datestamp_contentsubmitted($content)) {
-        $stampactionform = datafield_datestamp_getactionform($recordid, $field, $content->{DATAFIELD_DATESTAMP_COLUMN_CONTENT_COMMENT}, true);
-
-        $afterbadgehtml .= html_writer::div($stampactionform, '', [
-            'style' => 'margin: 8px 0;',
-            'class' => 'datafield_datestamp-stampaction',
-            'data-action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
-            'data-method' => 'post',
-            'data-enctype' => 'application/x-www-form-urlencoded'
-        ]);
+            $afterbadgehtml .= html_writer::div($stampactionform, '', [
+                'style' => 'margin: 8px 0;',
+                'class' => 'datafield_datestamp-stampaction',
+                'data-action' => new moodle_url('/mod/data/field/datestamp/stamp.php'),
+                'data-method' => 'post',
+                'data-enctype' => 'application/x-www-form-urlencoded'
+            ]);
+        }
     }
 
     return $badge . $afterbadgehtml;
